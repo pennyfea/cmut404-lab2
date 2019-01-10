@@ -6,7 +6,7 @@ import sys
 sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Port for socket and Host
-PORT = 8001
+PORT = 8002
 HOST = 'localhost'
 
 # bind the socket to host and port
@@ -21,8 +21,10 @@ while True:
     print("Got connection from", address)
     # Recieve message from the client
     message = clientsocket.recv(2024)
-    reply = 'Server output: ' + message.decode('utf-8')
+    print("Server received: " + message.decode('utf-8'))
+    reply = ("Server output: " + message.decode('utf-8'))
     if not message:
+        print("Client has been disconnected.....")
         break
     # Display messags.
     clientsocket.sendall(str.encode(reply))
