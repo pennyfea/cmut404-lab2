@@ -1,7 +1,0 @@
-Question 1: How do you specify a TCP socket in Python?
-Answer: To create a TCP-socket, you should use socket.AF_INET or socket.AF_INET6 for family 
-        and socket.SOCK_STREAM for type.
-        For example: s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-Question 2: What is the difference between a client socket and a server socket in Python
-Answer: 
