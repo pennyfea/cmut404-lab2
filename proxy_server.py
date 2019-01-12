@@ -40,20 +40,21 @@ class Proxy_Server:
             print("Process id:", process_id)
 
             # Recieve message from the client
-            message = conn.recv(2024)
-
+            message = conn.recv(4096)
+            print(message.decode('utf-8'))
+            
             hostname = message.decode('utf-8').rstrip('\n').rstrip('\r')
 
             try:
                 host_ip = socket.gethostbyname(hostname)
             except socket.gaierror:
                 print("Error with resolving host name")
-            # print(host_ip)
-
+            print(host_ip)
+        
             # Requests a page
             request = "GET / HTTP/1.1\r\nHost: " + host_ip + "\n\n"
-
             conn.sendall(request.encode())
+
         conn.close()
 
 if __name__ == '__main__':
