@@ -50,7 +50,7 @@ def handle_connection(conn, address):
         conn.close()
 
 if __name__ == '__main__':
-        ser = Server('localhost', 8003)
+        ser = Server('localhost', 8002)
         print("Starting server......")
         ser.server()
      
