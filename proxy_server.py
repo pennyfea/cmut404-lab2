@@ -1,63 +1,45 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import socket
-import os
-import sys
-from multiprocessing import Process
 
-class Proxy_Server:
+HOST = ""
+PORT = 8081
+BUFFER_SIZE = 1024
 
-    def __init__(self, HOST, PORT):
+addr_info = socket.getaddrinfo("www.google.com", 80, proto=socket.SOL_TCP)
+(family, socktype, proto, canonname, sockaddr) = addr_info[0]
 
-        self.host = HOST
-        self.port = PORT
-
+def main():
     
-    def server(self):
-        # Create socket
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # bind the socket to host and port
-        self.sock.bind((self.host, self.port))
-        # Start listening
-        self.sock.listen(5)
-
-        while True:
-            # Accept the connection
-            clientsocket, address = self.sock.accept()
-
-            #Spawn multiple processes
-            process = Process(target = self.handle_connection, args = (clientsocket, address))
-            process.daemon = True
-            process.start()
-
-    def handle_connection(self, conn, address):
-
-        print("Got connection from", address)
-
-        while True:
-
-            process_id = os.getpid()
-            print("Process id:", process_id)
-
-            # Recieve message from the client
-            message = conn.recv(4096)
-            print(message.decode('utf-8'))
-            
-            hostname = message.decode('utf-8').rstrip('\n').rstrip('\r')
-
-            try:
-                host_ip = socket.gethostbyname(hostname)
-            except socket.gaierror:
-                print("Error with resolving host name")
-            print(host_ip)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         
-            # Requests a page
-            request = "GET / HTTP/1.1\r\nHost: " + host_ip + "\n\n"
-            conn.sendall(request.encode())
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((HOST, PORT))
 
-        conn.close()
+        s.listen(1)
 
-if __name__ == '__main__':
-        ser = Proxy_Server('localhost', 8005)
-        print("Starting server......")
-        ser.server()
+        while True:
+            conn, addr = s.accept()
+            with conn:
+                print("Connected by:", addr)
+                with socket.socket(family, socktype) as proxy_end:
+                    # Connect to Google
+                    proxy_end.connect(sockaddr)
+
+                    # Send incomming conn data to Google
+                    send_full_data = b""
+                    while True:
+                        data = conn.recv(BUFFER_SIZE)
+                        if not data: break
+                        send_full_data += data
+                    proxy_end.sendall(send_full_data)
+
+                    full_data = b""
+                    while True:
+                        data = proxy_end.recv(BUFFER_SIZE)
+                        if not data:
+                            break
+                        full_data += data
+                    conn.sendall(full_data)
+
+if __name__ == "__main__":
+    main()

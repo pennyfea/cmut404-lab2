@@ -1,27 +1,44 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import socket
-import requests
 
-class Proxy_Client:
+HOST = "localhost"
+PORT = 8081
+BUFFER_SIZE = 1024
 
-    def __init__(self, HOST, PORT):
-        self.host = HOST
-        self.port = PORT
-    
-    def client(self):
+payload = """GET / HTTP/1.0
+Host: {HOST}
+""".format(HOST=HOST)
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(('localhost', self.port))
+def conn_socket(addr_tup):
+    (family, socktype, proto, canonname, sockaddr) = addr_tup
+    try:
+        s = socket.socket(family, socktype, proto)
+        s.connect(sockaddr)
+        s.sendall(payload.encode())
 
-        data = "www.sknvibes.com"
-        self.sock.sendall(data.encode())
-
-        results = self.sock.recv(4096)
-        print("This is the request: ")
-        print(results)
-        # self.sock.close()
+        s.shutdown(socket.SHUT_WR)
         
-if __name__ == '__main__':
-        cli = Proxy_Client('localhost', 8005)
-        print("Starting client......")
-        cli.client()
+        full_data = b""
+        while True:
+            data = s.recv(BUFFER_SIZE)
+            if not data:
+                break
+            full_data += data
+
+        print(full_data)
+    except e:
+        print(e)
+        pass
+    finally:
+        s.close()
+
+def main():
+    addr_info = socket.getaddrinfo(HOST, PORT, proto=socket.SOL_TCP)
+    #print(addr_info)
+    for addr_tup in addr_info:
+        conn_socket(addr_tup) 
+        # only ipv4 I guess
+        break
+
+if __name__ == "__main__":
+    main()
